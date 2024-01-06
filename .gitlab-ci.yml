@@ -5,6 +5,7 @@ stages:
   - deploy  # export the outputs (publish to an artifact registry, deploy on a server…)
 
 include:
+  - local: list.yml
   - remote: https://gitlab.com/opensavvy/ci-templates/-/raw/main/version.gitlab-ci.yml
   - remote: https://gitlab.com/opensavvy/ci-templates/-/raw/main/mirror.gitlab-ci.yml
 
@@ -19,10 +20,23 @@ workflow:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_TAG
 
-hello-world:
-  image: alpine:latest
+build:
+  image: archlinux:base-devel
+  extends: [ .packages ]
+  before_script:
+    - pacman -Syuu --noconfirm
+    - useradd -m builder
+    - echo "builder ALL=(ALL:ALL) ALL" >>/etc/sudoers
+    - echo "Defaults:builder !authenticate" >>/etc/sudoers
+    - echo "DESTDIR=$(pwd)/output" >>/etc/makepkg.conf
   script:
-    - echo 'Hello world'
+    - mkdir -p output
+    - cd packages/$name
+    - chown -R builder .
+    - sudo -u builder -- makepkg --syncdeps --noconfirm
+  artifacts:
+    paths:
+      - output
   interruptible: true
 
 mirror-playground:
