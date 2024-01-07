@@ -27,9 +27,10 @@ build:
     - useradd -m builder
     - echo "builder ALL=(ALL:ALL) ALL" >>/etc/sudoers
     - echo "Defaults:builder !authenticate" >>/etc/sudoers
-    - echo "DESTDIR=$(pwd)/output" >>/etc/makepkg.conf
+    - echo "PKGDEST=$(pwd)/output" >>/etc/makepkg.conf
   script:
     - mkdir -p output
+    - chown -R builder output
     - cd packages/$name
     - chown -R builder .
     - sudo -u builder -- makepkg --syncdeps --noconfirm
