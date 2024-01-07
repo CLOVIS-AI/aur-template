@@ -6,7 +6,6 @@ stages:
 
 include:
   - local: list.yml
-  - remote: https://gitlab.com/opensavvy/ci-templates/-/raw/main/version.gitlab-ci.yml
   - remote: https://gitlab.com/opensavvy/ci-templates/-/raw/main/mirror.gitlab-ci.yml
 
 variables:
