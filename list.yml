@@ -1,0 +1,6 @@
+# List of packages
+
+.packages:
+  parallel:
+    matrix:
+      - name: ttf-jetbrains-mono-git
