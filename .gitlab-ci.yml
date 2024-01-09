@@ -6,7 +6,6 @@ stages:
 
 include:
   - local: list.yml
-  - remote: https://gitlab.com/opensavvy/ci-templates/-/raw/main/version.gitlab-ci.yml
   - remote: https://gitlab.com/opensavvy/ci-templates/-/raw/main/mirror.gitlab-ci.yml
 
 variables:
@@ -23,14 +22,16 @@ workflow:
 build:
   image: archlinux:base-devel
   extends: [ .packages ]
+  stage: build
   before_script:
     - pacman -Syuu --noconfirm
     - useradd -m builder
     - echo "builder ALL=(ALL:ALL) ALL" >>/etc/sudoers
     - echo "Defaults:builder !authenticate" >>/etc/sudoers
-    - echo "DESTDIR=$(pwd)/output" >>/etc/makepkg.conf
+    - echo "PKGDEST=$(pwd)/output" >>/etc/makepkg.conf
   script:
     - mkdir -p output
+    - chown -R builder output
     - cd packages/$name
     - chown -R builder .
     - sudo -u builder -- makepkg --syncdeps --noconfirm
@@ -38,6 +39,33 @@ build:
     paths:
       - output
   interruptible: true
+
+publish:
+  image: archlinux:base-devel
+  stage: deploy
+  # DO NOT declare a 'needs'! It needs to run in a subsequent stage to download all artifacts
+  script:
+    - cd output
+    - >
+      for file in *;
+      do
+        echo "Package $file → $version";
+        curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file $file "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$repo/$version/$file";
+      done
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+      variables:
+        repo: stable
+        version: latest
+    - if: $CI_COMMIT_TAG
+      variables:
+        repo: stable
+        version: $CI_COMMIT_TAG
+    - when: on_success
+      variables:
+        repo: test
+        version: $CI_PIPELINE_IID
+  interruptible: false
 
 mirror-playground:
   stage: deploy
