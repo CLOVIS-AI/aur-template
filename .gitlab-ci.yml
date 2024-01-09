@@ -64,8 +64,45 @@ publish:
     - when: on_success
       variables:
         repo: test
-        version: $CI_PIPELINE_IID
+        version: experiment
   interruptible: false
+
+update-package-database:
+  image: archlinux:base-devel
+  stage: deploy
+  # DO NOT declare a 'needs'! It needs to run in a subsequent stage to download all artifacts
+  variables:
+    database: repo.db.tar.gz
+  before_script:
+    - pacman -Syuu --noconfirm wget
+  script:
+    - 'wget --header="JOB-TOKEN: $CI_JOB_TOKEN" ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$repo/$version/$database || true'
+    - cd output
+    - >
+      for file in *;
+      do
+        echo "Package $file → $version";
+        repo-add ../$database $file;
+      done
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ../repo.db.tar.gz "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$repo/$version/$database"'
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+      variables:
+        repo: stable
+        version: latest
+    - if: $CI_COMMIT_TAG
+      variables:
+        repo: stable
+        version: $CI_COMMIT_TAG
+    - when: on_success
+      variables:
+        repo: test
+        version: experiment
+  artifacts:
+    paths:
+      - repo.db.tar.gz
+  interruptible: false
+  resource_group: package-database
 
 mirror-playground:
   stage: deploy
