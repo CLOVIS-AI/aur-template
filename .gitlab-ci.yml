@@ -104,6 +104,47 @@ update-package-database:
   interruptible: false
   resource_group: package-database
 
+update-packages:
+  image: archlinux:base-devel
+  extends: [ .packages ]
+  stage: deploy
+  needs: [ ]
+
+  variables:
+    key: "$playground_mirroring_key"
+    key_public: "$playground_mirroring_key_public"
+
+  before_script:
+    - pacman -Syuu --noconfirm git openssh
+    - git clone https://gitlab.com/opensavvy/system/dotfiles.git
+
+  script:
+    - source dotfiles/os_configure.bash
+    # Set the identity
+    - git config user.name 'OpenSavvy Auto-Updater'
+    - git config user.email 'mirroring@opensavvy.dev'
+    # Sync the packages
+    - ./sync.sh $name
+    - git show --name-only
+    # Prepare the push
+    - mkdir -p ~/.ssh
+    - mv "$key" ~/.ssh/id_rsa
+    - mv "$key_public" ~/.ssh/id_rsa.pub
+    - cat ~/.ssh/id_rsa.pub
+    - chmod 600 ~/.ssh/id_rsa
+    # Add the GitLab servers to the list of known hosts (hardcoded to prevent MITM)
+    - echo 'gitlab.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCsj2bNKTBSpIYDEGk9KxsGh3mySTRgMtXL583qmBpzeQ+jqCMRgBqB98u3z++J1sKlXHWfM9dyhSevkMwSbhoR8XIq/U0tCNyokEi/ueaBMCvbcTHhO7FcwzY92WK4Yt0aGROY5qX2UKSeOvuP4D6TPqKF1onrSzH9bx9XUf2lEdWT/ia1NEKjunUqu1xOB/StKDHMoX4/OKyIzuS0q/T1zOATthvasJFoPrAjkohTyaDUz2LN5JoH839hViyEG82yB+MjcFV5MU3N1l1QL3cVUCh93xSaua1N85qivl+siMkPGbO5xR/En4iEY6K2XPASUEMaieWVNTRCtJ4S8H+9' >>~/.ssh/known_hosts
+    # Push if necessary
+    - git remote set-url --push origin git@gitlab.com:$CI_PROJECT_PATH.git
+    - git merge-base --is-ancestor HEAD origin/main || git push -o merge_request.create -o merge_request.target=main -o merge_request.remove_source_branch -o merge_request.title="Upgrade $name" origin "HEAD:refs/heads/upgrade-$name-$RANDOM"
+
+  rules:
+    - if: $playground_mirroring_key == null || $playground_mirroring_key_public == null
+      when: never
+    - if: $CI_PIPELINE_SOURCE == 'schedule'
+    - when: manual
+      allow_failure: true
+
 mirror-playground:
   stage: deploy
   extends: [ .os.mirror ]
