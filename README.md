@@ -10,6 +10,23 @@ This repository is another take on an AUR helper: instead of building your packa
 
 ## User guide
 
+### Create your own repository from this template
+
+TO BE WRITTEN.
+
+### Add a package
+
+1. Add the name of the package to the [package list](list.yml), using the same syntax as the existing entries. 
+2. Run `./sync.sh NAME_OF_THE_PACKAGE` to populate the `packages/` folder.
+3. Push.
+
+### Update packages (manually)
+
+1. Run `./sync.sh NAME_OF_THE_PACKAGE` to update that package in the `packages/` folder. 
+2. Push.
+
+### Update packages (automatically)
+
 TO BE WRITTEN.
 
 ## License
