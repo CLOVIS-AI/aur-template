@@ -33,6 +33,8 @@ TO BE WRITTEN.
 
 This project is licensed under the [Apache 2.0 license](LICENSE).
 
+The contents of the `packages` directory are other open source repositories. Each of them are licensed separately from this project, see each directory for more information.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
