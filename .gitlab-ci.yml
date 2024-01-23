@@ -12,6 +12,9 @@ variables:
   # https://gitlab.com/opensavvy/automation/containers
   ci_containers: 0.3.0
 
+  stable_repo_name: stable
+  snapshot_repo_name: test
+
 workflow:
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
@@ -85,18 +88,21 @@ update-package-database:
         repo-add ../$database $file;
       done
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ../repo.db.tar.gz "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$repo/$version/$database"'
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ../repo.db "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$repo/$version/$repo.db"'
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ../repo.files.tar.gz "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$repo/$version/$repo.files.tar.gz"'
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ../repo.files "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$repo/$version/$repo.files"'
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
       variables:
-        repo: stable
+        repo: $stable_repo_name
         version: latest
     - if: $CI_COMMIT_TAG
       variables:
-        repo: stable
+        repo: $stable_repo_name
         version: $CI_COMMIT_TAG
     - when: on_success
       variables:
-        repo: test
+        repo: $snapshot_repo_name
         version: experiment
   artifacts:
     paths:
