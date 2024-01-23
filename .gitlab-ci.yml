@@ -88,6 +88,9 @@ update-package-database:
         repo-add ../$database $file;
       done
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ../repo.db.tar.gz "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$repo/$version/$database"'
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ../repo.db "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$repo/$version/$repo.db"'
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ../repo.files.tar.gz "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$repo/$version/$repo.files.tar.gz"'
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ../repo.files "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$repo/$version/$repo.files"'
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
       variables:
