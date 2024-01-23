@@ -12,6 +12,9 @@ variables:
   # https://gitlab.com/opensavvy/automation/containers
   ci_containers: 0.3.0
 
+  stable_repo_name: stable
+  snapshot_repo_name: test
+
 workflow:
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
@@ -88,15 +91,15 @@ update-package-database:
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
       variables:
-        repo: stable
+        repo: $stable_repo_name
         version: latest
     - if: $CI_COMMIT_TAG
       variables:
-        repo: stable
+        repo: $stable_repo_name
         version: $CI_COMMIT_TAG
     - when: on_success
       variables:
-        repo: test
+        repo: $snapshot_repo_name
         version: experiment
   artifacts:
     paths:
