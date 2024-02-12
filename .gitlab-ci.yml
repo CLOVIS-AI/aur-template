@@ -27,11 +27,19 @@ build:
   extends: [ .packages ]
   stage: build
   before_script:
-    - pacman -Syuu --noconfirm
+    - pacman -Syuu --noconfirm gnupg
     - useradd -m builder
     - echo "builder ALL=(ALL:ALL) ALL" >>/etc/sudoers
     - echo "Defaults:builder !authenticate" >>/etc/sudoers
     - echo "PKGDEST=$(pwd)/output" >>/etc/makepkg.conf
+    - |
+      if [[ ! -z ${package_signing_key+x} ]];
+      then
+          sudo -u builder gpg --import "$package_signing_key"
+          echo "GPGKEY=$(gpg --show-keys --fingerprint --keyid-format=long <"$package_signing_key" | grep fingerprint | tr -d ' ' | cut -d '=' -f 2)" >>/etc/makepkg.conf
+          echo "BUILDENV=(!distcc color !cccache check sign)" >>/etc/makepkg.conf
+      fi
+    - cat /etc/makepkg.conf
   script:
     - mkdir -p output
     - chown -R builder output
@@ -49,7 +57,7 @@ publish:
   # DO NOT declare a 'needs'! It needs to run in a subsequent stage to download all artifacts
   script:
     - cd output
-    - >
+    - |
       for file in *;
       do
         echo "Package $file → $version";
@@ -81,12 +89,14 @@ update-package-database:
   script:
     - 'wget --header="JOB-TOKEN: $CI_JOB_TOKEN" ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$repo/$version/$database || true'
     - cd output
-    - >
+    - |
+      GLOBIGNORE="*.sig"
       for file in *;
       do
         echo "Package $file → $version";
         repo-add ../$database $file;
       done
+      unset GLOBIGNORE
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ../repo.db.tar.gz "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$repo/$version/$database"'
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ../repo.db "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$repo/$version/$repo.db"'
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ../repo.files.tar.gz "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$repo/$version/$repo.files.tar.gz"'

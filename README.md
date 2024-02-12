@@ -29,6 +29,22 @@ TO BE WRITTEN.
 
 TO BE WRITTEN.
 
+### Package signing
+
+By default, this repository doesn't sign packages. [Package signing is a Pacman feature](https://man.archlinux.org/man/pacman.conf.5#PACKAGE_AND_DATABASE_SIGNATURE_CHECKING) that allows to ensure the package hasn't been tampered with since it was built.
+
+If you do not trust your network (e.g. you are behind a proxy that forces you to install additional SSL certificates), then package signing ensures the proxy cannot infect a package.
+
+Since we build everything in CI, the secret signing key must be stored in the GitLab CI variables and shared with the runners you use to execute your CI jobs. This is standard practice for other deployment-based secrets (API keys…), but keep in mind that this means package signing will not protect you from a security flaw in GitLab itself—which you would be protected against if you built signed packages on your local machines then pushed them to GitLab, because an attacker editing the files wouldn't be able to replicate the signatures.
+
+However, using this repository does mean all packages are built in CI instead of your local machine. In that way, you reduce your attack surface to nefarious packages, so we believe this tradeoff is worth it.
+
+1. Create a GPG key: `gpg --full-generate-key` (choose the key type you want, as long as it supports signing).
+2. Export the key: `gpg --export-secret-key --armor username@email`.
+3. [Create a CI variable](https://docs.gitlab.com/ee/ci/variables/#define-a-cicd-variable-in-the-ui) named `package_signing_key` of type "file" which contains the complete and exact output of the previous command. Disable "expand variable reference". If you leave "protect variable", the snapshot repository will not be signed.
+
+The packages will now be signed next time they are regenerated.
+
 ## License
 
 This project is licensed under the [Apache 2.0 license](LICENSE).
