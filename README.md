@@ -8,6 +8,8 @@ To face this issue, many [AUR helpers](https://wiki.archlinux.org/title/AUR_help
 
 This repository is another take on an AUR helper: instead of building your packages locally, you build them in CI. Then, they are exposed as a regular binary package repository which `pacman` can install from.
 
+[TOC]
+
 ## User guide
 
 ### Create your own repository from this template
@@ -24,6 +26,10 @@ variables:
 The first is the name of the repository built from the default branch and tags, the other represents the repositories built from in-progress merge requests. For example, if you are creating a repository for a company called "foo", you can name the stable repository `foo` and the snapshot repository `foo-snapshot`, or something similar.
 
 Each repository is regenerated each time a commit is pushed on the relevant target. Just after forking, do not be surprised that they do not exist yet when you haven't pushed/merged the commit that renames them.
+
+### Configure Pacman to pull from the repository
+
+
 
 ### Add a package
 
