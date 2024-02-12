@@ -12,7 +12,18 @@ This repository is another take on an AUR helper: instead of building your packa
 
 ### Create your own repository from this template
 
-TO BE WRITTEN.
+First, create a GitLab account and [fork the project](https://gitlab.com/opensavvy/system/aur-template/-/forks/new).
+This will create a copy of the project under your own namespace, so you can edit it and add new packages as you wish.
+
+Navigate to the [.gitlab-ci.yml](.gitlab-ci.yml) file and change the values of the following two variables:
+```yaml
+variables:
+  stable_repo_name: stable
+  snapshot_repo_name: test
+```
+The first is the name of the repository built from the default branch and tags, the other represents the repositories built from in-progress merge requests. For example, if you are creating a repository for a company called "foo", you can name the stable repository `foo` and the snapshot repository `foo-snapshot`, or something similar.
+
+Each repository is regenerated each time a commit is pushed on the relevant target. Just after forking, do not be surprised that they do not exist yet when you haven't pushed/merged the commit that renames them.
 
 ### Add a package
 
