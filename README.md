@@ -29,7 +29,24 @@ Each repository is regenerated each time a commit is pushed on the relevant targ
 
 ### Configure Pacman to pull from the repository
 
+Add the following at the end of `/etc/pacman.conf`:
+```conf 
+[REPOSITORY_NAME]
+Server = https://gitlab.com/api/v4/projects/PROJECT_ID/packages/generic/REPOSITORY_NAME/latest/
+SigLevel = Optional
+```
+where:
+- `PROJECT_ID` should be replaced by the GitLab project ID (you can find it in the project settings, in "general", next to the project name).
+- `REPOSITORY_NAME` should be replaced by the name you gave the stable repository (replace both occurrences).
 
+For example, to add this template repository, use:
+```conf
+[stable]
+Server = https://gitlab.com/api/v4/projects/53612998/packages/generic/stable/latest/
+SigLevel = Optional
+```
+
+Instead of pulling packages from the default branch, you can instead freeze the repository to a specific tag by replacing `latest` at the end of the URL by the name of the tag.
 
 ### Add a package
 
