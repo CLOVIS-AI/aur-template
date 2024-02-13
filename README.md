@@ -8,11 +8,45 @@ To face this issue, many [AUR helpers](https://wiki.archlinux.org/title/AUR_help
 
 This repository is another take on an AUR helper: instead of building your packages locally, you build them in CI. Then, they are exposed as a regular binary package repository which `pacman` can install from.
 
+[TOC]
+
 ## User guide
 
 ### Create your own repository from this template
 
-TO BE WRITTEN.
+First, create a GitLab account and [fork the project](https://gitlab.com/opensavvy/system/aur-template/-/forks/new).
+This will create a copy of the project under your own namespace, so you can edit it and add new packages as you wish.
+
+Navigate to the [.gitlab-ci.yml](.gitlab-ci.yml) file and change the values of the following two variables:
+```yaml
+variables:
+  stable_repo_name: stable
+  snapshot_repo_name: test
+```
+The first is the name of the repository built from the default branch and tags, the other represents the repositories built from in-progress merge requests. For example, if you are creating a repository for a company called "foo", you can name the stable repository `foo` and the snapshot repository `foo-snapshot`, or something similar.
+
+Each repository is regenerated each time a commit is pushed on the relevant target. Just after forking, do not be surprised that they do not exist yet when you haven't pushed/merged the commit that renames them.
+
+### Configure Pacman to pull from the repository
+
+Add the following at the end of `/etc/pacman.conf`:
+```conf 
+[REPOSITORY_NAME]
+Server = https://gitlab.com/api/v4/projects/PROJECT_ID/packages/generic/REPOSITORY_NAME/latest/
+SigLevel = Optional
+```
+where:
+- `PROJECT_ID` should be replaced by the GitLab project ID (you can find it in the project settings, in "general", next to the project name).
+- `REPOSITORY_NAME` should be replaced by the name you gave the stable repository (replace both occurrences).
+
+For example, to add this template repository, use:
+```conf
+[stable]
+Server = https://gitlab.com/api/v4/projects/53612998/packages/generic/stable/latest/
+SigLevel = Optional
+```
+
+Instead of pulling packages from the default branch, you can instead freeze the repository to a specific tag by replacing `latest` at the end of the URL by the name of the tag.
 
 ### Add a package
 
