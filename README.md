@@ -79,6 +79,28 @@ However, using this repository does mean all packages are built in CI instead of
 
 The packages will now be signed next time they are regenerated.
 
+### Signature verification
+
+To import signed packages on a device, follow the regular procedure to install the package, replacing
+```text
+SigLevel = Optional
+```
+by
+```text
+SigLevel = Required DatabaseOptional
+```
+in `/etc/pacman.conf`.
+
+Then, import the signature's public key:
+```shell
+# Import the key from a public key server
+# (or use pacman-key --add to specific the public key file)
+sudo pacman-key --recv-key PUBLIC_KEY_ID
+
+# Trust the key
+sudo pacman-key --lsign PUBLIC_KEY_ID
+```
+
 ## License
 
 This project is licensed under the [Apache 2.0 license](LICENSE).
