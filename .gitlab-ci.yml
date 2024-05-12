@@ -8,9 +8,11 @@ include:
   - local: list.yml
   - remote: https://gitlab.com/opensavvy/ci-templates/-/raw/main/mirror.gitlab-ci.yml
 
+  - local: docs/website/.gitlab-ci.yml
+
 variables:
   # https://gitlab.com/opensavvy/automation/containers
-  ci_containers: 0.3.0
+  ci_containers: 0.4.1
 
   stable_repo_name: stable
   snapshot_repo_name: test
@@ -21,6 +23,8 @@ workflow:
     - if: $CI_PIPELINE_SOURCE == 'schedule'
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_TAG
+
+# region Package building
 
 build:
   image: archlinux:base-devel
@@ -50,6 +54,9 @@ build:
     paths:
       - output
   interruptible: true
+
+# endregion
+# region Package publishing
 
 publish:
   image: archlinux:base-devel
@@ -161,6 +168,9 @@ update-packages:
     - when: manual
       allow_failure: true
 
+# endregion
+# region Automatically mirror the previous layer of the playground
+
 mirror-playground:
   stage: deploy
   extends: [ .os.mirror ]
@@ -180,3 +190,27 @@ mirror-playground:
     - if: $CI_PIPELINE_SOURCE == 'schedule'
     - when: manual
       allow_failure: true
+
+# endregion
+# region GitLab Pages
+
+pages:
+  image: alpine:latest
+  stage: deploy
+  needs:
+    - job: mkdocs
+      artifacts: true
+
+  script:
+    - mkdir -p public
+    - mv docs-website public/docs
+
+  artifacts:
+    paths:
+      - public
+
+  rules:
+    - if: $CI_COMMIT_TAG
+  interruptible: false
+
+# endregion
