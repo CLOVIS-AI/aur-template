@@ -157,9 +157,12 @@ update-packages:
     - chmod 600 ~/.ssh/id_rsa
     # Add the GitLab servers to the list of known hosts (hardcoded to prevent MITM)
     - echo 'gitlab.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCsj2bNKTBSpIYDEGk9KxsGh3mySTRgMtXL583qmBpzeQ+jqCMRgBqB98u3z++J1sKlXHWfM9dyhSevkMwSbhoR8XIq/U0tCNyokEi/ueaBMCvbcTHhO7FcwzY92WK4Yt0aGROY5qX2UKSeOvuP4D6TPqKF1onrSzH9bx9XUf2lEdWT/ia1NEKjunUqu1xOB/StKDHMoX4/OKyIzuS0q/T1zOATthvasJFoPrAjkohTyaDUz2LN5JoH839hViyEG82yB+MjcFV5MU3N1l1QL3cVUCh93xSaua1N85qivl+siMkPGbO5xR/En4iEY6K2XPASUEMaieWVNTRCtJ4S8H+9' >>~/.ssh/known_hosts
+    # Generate the Telegram announce message
+    - echo -e "New version of $name available\n\n<a href=\"$CI_PROJECT_URL/-/merge_requests\">Review merge requests</a>" >/tmp/telegram-msg.txt
     # Push if necessary
     - git remote set-url --push origin git@gitlab.com:$CI_PROJECT_PATH.git
     - git merge-base --is-ancestor HEAD origin/main || git push -o merge_request.create -o merge_request.target=main -o merge_request.remove_source_branch -o merge_request.title="Upgrade $name" origin "HEAD:refs/heads/upgrade-$name-$RANDOM"
+    - git merge-base --is-ancestor HEAD origin/main || os_info_telegram /tmp/telegram-msg.txt "$telegram_chats"
 
   rules:
     - if: $playground_mirroring_key == null || $playground_mirroring_key_public == null
