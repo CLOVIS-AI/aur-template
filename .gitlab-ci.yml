@@ -53,6 +53,12 @@ build:
   artifacts:
     paths:
       - output
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - packages/$name/**/*
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
   interruptible: true
 
 # endregion
@@ -62,9 +68,12 @@ publish:
   image: archlinux:base-devel
   stage: deploy
   # DO NOT declare a 'needs'! It needs to run in a subsequent stage to download all artifacts
+  before_script:
+    - mkdir -p output # in case no package were built, the directory isn't created
   script:
     - cd output
     - |
+      shopt -s nullglob;
       for file in *;
       do
         echo "Package $file → $version";
@@ -79,10 +88,6 @@ publish:
       variables:
         repo: $stable_repo_name
         version: $CI_COMMIT_TAG
-    - when: on_success
-      variables:
-        repo: $snapshot_repo_name
-        version: experiment
   interruptible: false
 
 update-package-database:
@@ -93,10 +98,12 @@ update-package-database:
     database: repo.db.tar.gz
   before_script:
     - pacman -Syuu --noconfirm wget
+    - mkdir -p output # in case no package were built, the directory isn't created
   script:
     - 'wget --header="JOB-TOKEN: $CI_JOB_TOKEN" ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$repo/$version/$database || true'
     - cd output
     - |
+      shopt -s nullglob;
       GLOBIGNORE="*.sig"
       for file in *;
       do
@@ -117,10 +124,6 @@ update-package-database:
       variables:
         repo: $stable_repo_name
         version: $CI_COMMIT_TAG
-    - when: on_success
-      variables:
-        repo: $snapshot_repo_name
-        version: experiment
   artifacts:
     paths:
       - repo.db.tar.gz
