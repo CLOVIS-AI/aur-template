@@ -163,7 +163,7 @@ update-packages:
     - echo -e "New version of $name available\n\n<a href=\"$CI_PROJECT_URL/-/merge_requests\">Review merge requests</a>" >/tmp/telegram-msg.txt
     # Push if necessary
     - git remote set-url --push origin git@gitlab.com:$CI_PROJECT_PATH.git
-    - git merge-base --is-ancestor HEAD origin/main || git push -o merge_request.create -o merge_request.target=main -o merge_request.remove_source_branch -o merge_request.title="Upgrade $name" origin "HEAD:refs/heads/upgrade-$name-$RANDOM"
+    - git merge-base --is-ancestor HEAD origin/main || git push --force -o merge_request.create -o merge_request.target=main -o merge_request.remove_source_branch -o merge_request.title="Upgrade $name" origin "HEAD:refs/heads/upgrade-$name"
     - git merge-base --is-ancestor HEAD origin/main || os_info_telegram /tmp/telegram-msg.txt "$telegram_chats"
 
   rules:
