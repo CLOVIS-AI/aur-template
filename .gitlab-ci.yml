@@ -11,7 +11,7 @@ include:
 
 variables:
   # https://gitlab.com/opensavvy/automation/containers
-  ci_containers: 0.8.1
+  ci_containers: 0.8.2
 
   stable_repo_name: stable
   snapshot_repo_name: test
